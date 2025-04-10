@@ -42,33 +42,32 @@ inv_rgb_transform = T.Compose(
         ]
     )
 
-def visualize(rgb, detections, save_path="tmp.png"):
+def visualize(rgb, detections, save_path="tmp.png", nbest=1):
     img = rgb.copy()
     gray = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2GRAY)
     img = cv2.cvtColor(gray, cv2.COLOR_GRAY2RGB)
     colors = distinctipy.get_colors(len(detections))
     alpha = 0.33
 
-    best_score = 0.
-    for mask_idx, det in enumerate(detections):
-        if best_score < det['score']:
-            best_score = det['score']
-            best_det = detections[mask_idx]
+    for det in sorted(detections, key=lambda x: x['score'], reverse=True)[:nbest]:
+        mask = rle_to_mask(det["segmentation"])
+        edge = canny(mask)
+        edge = binary_dilation(edge, np.ones((2, 2)))
+        obj_id = det["category_id"]
+        temp_id = obj_id - 1
 
-    mask = rle_to_mask(best_det["segmentation"])
-    edge = canny(mask)
-    edge = binary_dilation(edge, np.ones((2, 2)))
-    obj_id = best_det["category_id"]
-    temp_id = obj_id - 1
+        r = int(255*colors[temp_id][0])
+        g = int(255*colors[temp_id][1])
+        b = int(255*colors[temp_id][2])
+        img[mask, 0] = alpha*r + (1 - alpha)*img[mask, 0]
+        img[mask, 1] = alpha*g + (1 - alpha)*img[mask, 1]
+        img[mask, 2] = alpha*b + (1 - alpha)*img[mask, 2]   
+        img[edge, :] = 255
 
-    r = int(255*colors[temp_id][0])
-    g = int(255*colors[temp_id][1])
-    b = int(255*colors[temp_id][2])
-    img[mask, 0] = alpha*r + (1 - alpha)*img[mask, 0]
-    img[mask, 1] = alpha*g + (1 - alpha)*img[mask, 1]
-    img[mask, 2] = alpha*b + (1 - alpha)*img[mask, 2]   
-    img[edge, :] = 255
-    
+        # bbox is BOP format :(x, y, width, height) where (x, y) is the top-left corner of the bounding box.
+        x, y, width, height = det['bbox']
+        cv2.rectangle(img, (x, y), (x + width, y + height), (r, g, b), 2)
+        
     img = Image.fromarray(np.uint8(img))
     img.save(save_path)
     prediction = Image.open(save_path)
@@ -79,6 +78,8 @@ def visualize(rgb, detections, save_path="tmp.png"):
     concat.paste(rgb, (0, 0))
     concat.paste(prediction, (img.shape[1], 0))
     return concat
+
+
 
 def batch_input_data(depth_path, cam_path, device):
     batch = {}
@@ -207,9 +208,16 @@ def run_inference(segmentor_model, output_dir, cad_path, rgb_path, depth_path, c
     detections.save_to_file(0, 0, 0, save_path, "Custom", return_results=False)
     detections = convert_npz_to_json(idx=0, list_npz_paths=[save_path+".npz"])
     save_json_bop23(save_path+".json", detections)
-    vis_img = visualize(rgb, detections, f"{output_dir}/sam6d_results/vis_ism.png")
-    vis_img.save(f"{output_dir}/sam6d_results/vis_ism.png")
+
     
+    logging.info(f"Creating visualizations")
+    for n_best in [1,2,5,10,15,20]:
+        vis_file_path = f"{output_dir}/sam6d_results/vis_ism_{n_best}best.png"
+        logging.info(f"Creating {vis_file_path}")
+        vis_img_n = visualize(rgb, detections, vis_file_path, n_best)
+        vis_img_n.save(vis_file_path)
+    
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--segmentor_model", default='sam', help="The segmentor model in ISM")
