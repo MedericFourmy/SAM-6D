@@ -1,25 +1,26 @@
 [build-system]
 requires = [
     "torch<2.6.0",
-    "setuptools>=18.0",
+    "setuptools",
 ]
 
 [project]
-name = "sam-6d"
+name = "SAM-6D"
 version = "0.1.0"
 description = "Add your description here"
-readme = "README.md"
-requires-python = ">=3.9"
+# readme = "README.md"
+requires-python = ">=3.9,<3.13"
 dependencies = [
-    "blenderproc==2.8.0",
-    "fvcore>=0.1.5.post20221221",
-    "numpy<2.0.0",
-    "opencv-python>=4.11.0.86",
-    "torch<2.6.0",
-    "torchmetrics>=0.10.3",
-    "torchvision>=0.20.1",
-    "xformers>=0.0.18",
-    "pycocotools>=2.0.8",
+    "blenderproc",
+    "fvcore",
+    "numpy",
+    "opencv-python",
+    "xformers",
+    "pycocotools",
+    # "pointnet2",
+  "torch<2.6.0",
+  "torchvision",
+    "torchmetrics",
 ]
 
 [project.optional-dependencies]
@@ -47,5 +48,25 @@ pem = [
 
 
 [tool.setuptools]
-packages = ["pointnet2"]
-package-dir = {"pointnet2" = "Pose_Estimation_Model/model/pointnet2"}
+packages = ["Render", "Pose_Estimation_Model", "Instance_Segmentation_Model"]
+# package-dir = {"pointnet2" = "Pose_Estimation_Model/model/pointnet2"}
+
+
+
+
+
+[[tool.uv.index]]
+name = "pytorch-cu124"
+url = "https://download.pytorch.org/whl/cu124"
+
+[tool.uv.sources]
+pointnet2 = {workspace = true}
+torch = [
+  {index = "pytorch-cu124"}
+]
+torchvision = [
+  {index = "pytorch-cu124"}
+]
+
+[tool.uv.workspace]
+members = ["Pose_Estimation_Model/model/pointnet2"]

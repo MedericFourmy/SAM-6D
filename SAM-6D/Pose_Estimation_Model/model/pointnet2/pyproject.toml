@@ -1,0 +1,18 @@
+[build-system]
+build-backend = "setuptools.build_meta"
+requires = [
+  "torch<2.6.0",
+  "setuptools",
+  "numpy"
+]
+
+[project]
+name = "pointnet2"
+version = "0.1.0"
+
+[tool.setuptools]
+packages = ["pointnet2"]
+
+[[tool.uv.index]]
+name = "pytorch-cu124"
+url = "https://download.pytorch.org/whl/cu124"
