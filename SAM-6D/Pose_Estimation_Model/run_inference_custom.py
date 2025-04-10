@@ -8,6 +8,7 @@ import numpy as np
 import random
 import importlib
 import json
+import imageio
 
 import torch
 import torchvision.transforms as transforms
@@ -19,6 +20,8 @@ sys.path.append(os.path.join(ROOT_DIR, 'provider'))
 sys.path.append(os.path.join(ROOT_DIR, 'utils'))
 sys.path.append(os.path.join(ROOT_DIR, 'model'))
 sys.path.append(os.path.join(BASE_DIR, 'model', 'pointnet2'))
+
+SCALE_DOWN_FACTOR = 4.0
 
 
 def get_parser():
@@ -86,7 +89,6 @@ def init():
 
 
 from data_utils import (
-    load_im,
     get_bbox,
     get_point_cloud_from_depth,
     get_resize_rgb_choose,
@@ -119,9 +121,9 @@ def _get_template(path, cfg, tem_index=1):
     mask_path = os.path.join(path, 'mask_'+str(tem_index)+'.png')
     xyz_path = os.path.join(path, 'xyz_'+str(tem_index)+'.npy')
 
-    rgb = load_im(rgb_path).astype(np.uint8)
+    rgb = imageio.imread(rgb_path).astype(np.uint8)
     xyz = np.load(xyz_path).astype(np.float32) / 1000.0  
-    mask = load_im(mask_path).astype(np.uint8) == 255
+    mask = imageio.imread(mask_path).astype(np.uint8) == 255
 
     bbox = get_bbox(mask)
     y1, y2, x1, x2 = bbox
@@ -166,6 +168,7 @@ def get_test_data(rgb_path, depth_path, cam_path, cad_path, seg_path, det_score_
     dets = []
     with open(seg_path) as f:
         dets_ = json.load(f) # keys: scene_id, image_id, category_id, bbox, score, segmentation
+        breakpoint()
     for det in dets_:
         if det['score'] > det_score_thresh:
             dets.append(det)
@@ -174,10 +177,15 @@ def get_test_data(rgb_path, depth_path, cam_path, cad_path, seg_path, det_score_
     cam_info = json.load(open(cam_path))
     K = np.array(cam_info['cam_K']).reshape(3, 3)
 
-    whole_image = load_im(rgb_path).astype(np.uint8)
+    whole_image = imageio.imread(rgb_path).astype(np.uint8)
+    # if gray scale, make a shape 3 gray scale img
     if len(whole_image.shape)==2:
         whole_image = np.concatenate([whole_image[:,:,None], whole_image[:,:,None], whole_image[:,:,None]], axis=2)
-    whole_depth = load_im(depth_path).astype(np.float32) * cam_info['depth_scale'] / 1000.0
+    whole_depth = imageio.imread(depth_path).astype(np.float32) * cam_info['depth_scale'] / 1000.0
+
+    # Rescale image, update K and detections accordingly
+    # TODO!
+
     whole_pts = get_point_cloud_from_depth(whole_depth, K)
 
     mesh = trimesh.load_mesh(cad_path)
