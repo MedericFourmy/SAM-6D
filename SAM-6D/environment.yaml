@@ -9,12 +9,13 @@ dependencies:
   - pip
   - python=3.9.6
   - pip:
-    - torch==2.0.0
-    - torchvision==0.15.1
+    - torch<2.6.0  # 2.6.0 is uncompatible with ultralytics fastSAM implementation
+    - torchvision<0.2.0  # torch compatibility
+    - numpy<2.0.0  # for trimesh compatibility
     - fvcore
-    - xformers==0.0.18
-    - torchmetrics==0.10.3
-    - blenderproc==2.6.1
+    - xformers>=0.0.18
+    - torchmetrics>=0.10.3
+    - blenderproc==2.8.0
     - opencv-python 
     # ISM 
     - omegaconf
@@ -25,10 +26,9 @@ dependencies:
     - pandas
     - imageio
     - pyrender
-    - pytorch-lightning==1.8.1
+    - pytorch-lightning>=1.8.1
     - pycocotools 
     - distinctipy
-    - git+https://github.com/facebookresearch/segment-anything.git  # SAM
     - ultralytics==8.0.135  # FastSAM
     # PEM
     - timm
