@@ -1,7 +1,11 @@
-### Create conda environment
-pip install .
+# ISM = Instance Segmentation Model
+# PEM = Pose Estimation Model
+### Install dependencies
+pip install .[ism,pem]
+# pip install .[pem]  # install only PEM deps
+# pip install .[ism]  # install only ISM deps
 
-### Install pointnet2 (SHOULD BE AUTOMATIC BUT IS NOT YET)
+### Manuel install of pointnet2 needed if using PEM (SHOULD BE AUTOMATIC BUT IS NOT YET)
 cd Pose_Estimation_Model/model/pointnet2
 python setup.py install
 cd ../../../
