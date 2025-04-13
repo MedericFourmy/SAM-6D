@@ -17,7 +17,7 @@ dependencies = [
     "opencv-python",
     "xformers",
     "pycocotools",
-    # "pointnet2",
+     "pointnet2",
   "torch<2.6.0",
   "torchvision",
     "torchmetrics",
@@ -49,7 +49,7 @@ pem = [
 
 [tool.setuptools]
 packages = ["Render", "Pose_Estimation_Model", "Instance_Segmentation_Model"]
-# package-dir = {"pointnet2" = "Pose_Estimation_Model/model/pointnet2"}
+package-dir = {"pointnet2" = "Pose_Estimation_Model/model/pointnet2"}
 
 
 

@@ -16,7 +16,7 @@ _ext_sources = glob.glob("{}/src/*.cpp".format(_ext_src_root)) + glob.glob(
 )
 _ext_headers = glob.glob("{}/include/*".format(_ext_src_root))
 
-headers = "-I" + os.path.join(os.path.dirname(os.path.abspath(__file__)), '_ext_src', 'include')
+headers = "-I" + os.path.join(os.path.dirname(os.path.abspath(__file__)), _ext_src_root, 'include')
 
 setup(
     name='pointnet2',
