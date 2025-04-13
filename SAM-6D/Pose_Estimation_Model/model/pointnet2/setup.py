@@ -2,10 +2,13 @@
 # 
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
-import os
-from setuptools import setup, find_packages
+
+# https://github.com/facebookresearch/votenet/issues/108#issuecomment-783878066
+
+from setuptools import setup
 from torch.utils.cpp_extension import BuildExtension, CUDAExtension
 import glob
+import os
 
 _ext_src_root = "_ext_src"
 _ext_sources = glob.glob("{}/src/*.cpp".format(_ext_src_root)) + glob.glob(
@@ -13,24 +16,21 @@ _ext_sources = glob.glob("{}/src/*.cpp".format(_ext_src_root)) + glob.glob(
 )
 _ext_headers = glob.glob("{}/include/*".format(_ext_src_root))
 
+headers = "-I" + os.path.join(os.path.dirname(os.path.abspath(__file__)), _ext_src_root, 'include')
+
 setup(
     name='pointnet2',
-    packages = find_packages(),
     ext_modules=[
         CUDAExtension(
             name='pointnet2._ext',
             sources=_ext_sources,
-            include_dirs = [os.path.join(_ext_src_root, "include")],
             extra_compile_args={
-                # "cxx": ["-O2", "-I{}".format("{}/include".format(_ext_src_root))],
-                # "nvcc": ["-O2", "-I{}".format("{}/include".format(_ext_src_root))],
-                "cxx": [],
-                "nvcc": ["-O3", 
-                "-DCUDA_HAS_FP16=1",
-                "-D__CUDA_NO_HALF_OPERATORS__",
-                "-D__CUDA_NO_HALF_CONVERSIONS__",
-                "-D__CUDA_NO_HALF2_OPERATORS__",
-            ]},)
+                "cxx": ["-O2", headers],
+                "nvcc": ["-O2", headers]
+            },
+        )
     ],
-    cmdclass={'build_ext': BuildExtension.with_options(use_ninja=True)}
+    cmdclass={
+        'build_ext': BuildExtension
+    }
 )
